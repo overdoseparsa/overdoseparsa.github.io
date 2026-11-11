@@ -2,9 +2,49 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script>
+(function(){
+  var d=document.documentElement, EN=d.lang==='en';
+  var ua=navigator.userAgent||'';
+  if(/bot|crawl|spider|slurp|bing|google|facebookexternalhit|lighthouse|headless/i.test(ua)) return;
+  function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){} return null; }
+  var q=/[?&]lang=(fa|en)/.exec(location.search); if(q) store('lang_pref',q[1]);
+  function go(toEn){ var u=toEn?(EN?null:'en/'):(EN?'../':null); if(u) location.replace(u+location.hash); }
+  function done(){ d.classList.remove('geo-wait'); }
+  var pref=store('lang_pref');
+  if(pref){ if((pref==='en')!==EN){ go(pref==='en'); } else done(); return; }
+  d.classList.add('geo-wait'); setTimeout(done,1500);
+  function decide(cc){ var wantEn = cc!=='IR'; if(wantEn!==EN) go(wantEn); else done(); }
+  var cached=store('geo_cc'), ts=+store('geo_ts')||0;
+  if(cached && Date.now()-ts<864e5){ decide(cached); return; }
+  function get(url,parse){ var c=new AbortController(); var t=setTimeout(function(){c.abort();},2500);
+    return fetch(url,{signal:c.signal}).then(function(r){ clearTimeout(t); return r.text(); }).then(parse); }
+  var tries=[
+    function(){ return get('https://get.geojs.io/v1/ip/country.json',function(t){ var j=JSON.parse(t); j=Array.isArray(j)?j[0]:j; return j.country; }); },
+    function(){ return get('https://ipapi.co/country/',function(t){ return t.trim(); }); },
+    function(){ return get('https://www.cloudflare.com/cdn-cgi/trace',function(t){ var m=/loc=([A-Z]{2})/.exec(t); return m&&m[1]; }); }
+  ];
+  (function next(i){
+    if(i>=tries.length){ var l=(navigator.languages&&navigator.languages[0])||navigator.language||''; decide(/^fa/i.test(l)?'IR':'XX'); return; }
+    tries[i]().then(function(cc){ if(cc&&/^[A-Z]{2}$/.test(cc)){ store('geo_cc',cc); store('geo_ts',String(Date.now())); decide(cc); } else next(i+1); },function(){ next(i+1); });
+  })(0);
+  document.addEventListener('DOMContentLoaded',function(){});
+})();
+document.addEventListener('DOMContentLoaded',function(){
+  var a=document.querySelector('.lang-switch'); if(a) a.addEventListener('click',function(){ try{ localStorage.setItem('lang_pref',a.getAttribute('data-lang')); }catch(e){} });
+});
+</script>
+<style>html.geo-wait body{visibility:hidden}
+  .lang-switch{ font-family:var(--mono); font-size:12px; padding:7px 11px; border:1px solid var(--line-strong); border-radius:9px; color:var(--muted); white-space:nowrap; transition:.2s; }
+  .lang-switch:hover{ color:var(--text); border-color:var(--cyan); }
+</style>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Parsa Khaki (محمد خاکی بختیاروند) — Computer Vision &amp; Python Backend Engineer</title>
 <meta name="description" content="Parsa Khaki (Mohammad Khaki Bakhtiarvand) — Computer Vision and Python Backend Engineer in Tehran. YOLO/OpenCV license plate recognition (ALPR), fire and smoke detection, Django and FastAPI. پارسا خاکی (محمد خاکی بختیاروند) — مهندس بینایی ماشین و بک‌اند.">
+<link rel="alternate" hreflang="fa" href="https://overdoseparsa.github.io/">
+<link rel="alternate" hreflang="en" href="https://overdoseparsa.github.io/en/">
+<link rel="alternate" hreflang="x-default" href="https://overdoseparsa.github.io/">
 <link rel="canonical" href="https://overdoseparsa.github.io/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="author" content="Parsa Khaki">
@@ -509,6 +549,7 @@
       <li><a href="#contact">تماس</a></li>
     </ul>
     <div class="nav-cta">
+      <a class="lang-switch" href="en/" data-lang="en" hreflang="en" lang="en">EN</a>
       <a class="btn btn-ghost" href="https://github.com/overdoseparsa" target="_blank" rel="noopener">گیت‌هاب</a>
       <a class="btn btn-solid" href="#contact">شروع همکاری</a>
     </div>
